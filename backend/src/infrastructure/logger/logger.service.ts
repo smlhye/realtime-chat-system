@@ -15,7 +15,7 @@ export class AppLoggerService implements LoggerService {
     }
 
     error(message: string, trace?: string, context?: string) {
-        this.logger.error(message, { trace, context });
+        this.logger.error(message, { context, stack: trace });
     }
 
     warn(message: string, context?: string) {

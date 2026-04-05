@@ -15,7 +15,7 @@ export class AppConfigService {
 
     get database() {
         return {
-            type: this.configService.get<'mysql'>('DB_TYPE'),
+            type: this.configService.get<'postgres'>('DB_TYPE'),
             host: this.configService.get<string>('DB_HOST'),
             port: this.configService.get<number>('DB_PORT'),
             username: this.configService.get<string>('DB_USERNAME'),
@@ -23,6 +23,8 @@ export class AppConfigService {
             database: this.configService.get<string>('DB_NAME'),
             synchronize: this.configService.get<boolean>('DB_SYNC'),
             logging: this.configService.get<boolean>('DB_LOGGING'),
+            timezone: this.configService.get<string>('DB_TIMEZONE'),
+            url: this.configService.get<string>('DATABASE_URL'),
         };
     }
 
