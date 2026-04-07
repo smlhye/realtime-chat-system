@@ -21,7 +21,7 @@ export class UserRepository {
         })
     }
 
-    async findByUsername(username: string): Promise<Omit<User, 'password'> | null> {
+    async findByUsername(username: string): Promise<User | null> {
         return this.prisma.user.findUnique({
             where: { username },
         })

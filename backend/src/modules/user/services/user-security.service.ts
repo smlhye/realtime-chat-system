@@ -12,4 +12,8 @@ export class UserSecurityService {
         const saltRounds = this.appConfigService.security.saltRounds || 10;
         return bcrypt.hash(password, saltRounds);
     }
+
+    async comparePassword(password: string, hashedPassword: string) : Promise<boolean> {
+        return await bcrypt.compare(password, hashedPassword);
+    }
 }

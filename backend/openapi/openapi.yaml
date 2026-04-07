@@ -11,6 +11,13 @@ paths:
       tags:
         - Auth
       summary: Sign up a new user
+      parameters:
+        - in: header
+          name: X-Device-Id
+          schema:
+            type: string
+          required: false
+          description: Device indentifier for multi-device tracking
       requestBody: 
         required: true
         content:
@@ -75,6 +82,13 @@ paths:
       tags:
         - Auth
       summary: Refresh access token using HttpOnly cookie
+      parameters:
+        - in: header
+          name: X-Device-Id
+          schema:
+            type: string
+          required: false
+          description: Device indentifier for multi-device tracking
       description: Refreshes the access token using the HttpOnly refresh token cookie; no request body is needed
       responses:
         '200':

@@ -49,9 +49,7 @@ export class UserValidator {
 
     async checkUsername(username: string, mode: CheckMode = "unique") {
         this.logger.debug(`Checking username "${username}" with mode "${mode}"`, 'UserValidator');
-
         const user = await this.userRepo.findByUsername(username);
-
         if (mode === "unique") {
             if (user) {
                 this.logger.warn(`Username "${username}" already exists`, 'UserValidator');

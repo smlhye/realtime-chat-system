@@ -1,9 +1,12 @@
-import { BadRequestException, Body, Controller, Post } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Post, Req, Res, UseGuards } from "@nestjs/common";
 import { CommandBus, QueryBus } from "@nestjs/cqrs";
-import type { SignUpRequest, SignUpResponse } from "src/generated/type";
+import type { SignInRequest, SignInResponse, SignUpRequest, SignUpResponse } from "src/generated/type";
 import { schemas } from "src/generated/client";
 import { SignUpCommand } from "./commands/sign-up.command";
 import { AppLoggerService } from "src/infrastructure/logger/logger.service";
+import { AuthGuard } from "@nestjs/passport";
+import type { Request, Response } from "express";
+import { SignInData } from "src/common/decorators/sign-in.decorator";
 
 @Controller('auth')
 export class AuthController {
@@ -37,5 +40,24 @@ export class AuthController {
                 this.logger.error(`SignUp failed: ${err.message}`, err.stack, this.context);
             throw err;
         }
+    }
+
+    @Post('sign-in')
+    @UseGuards(AuthGuard('local'))
+    async signIn(
+        @Res({ passthrough: true }) res: Response,
+        @SignInData() signInData: SignInResponse,
+    ) {
+        res.cookie('refresh_token', signInData.refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            expires: new Date(signInData.expiresAt!)
+        });
+        return {
+            accessToken: signInData.accessToken,
+            tokenType: signInData.tokenType,
+            expiresAt: signInData.expiresAt,
+        };
     }
 }
