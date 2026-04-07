@@ -1,20 +1,27 @@
 import { BadRequestException, Body, Controller, Post, Req, Res, UseGuards } from "@nestjs/common";
-import { CommandBus, QueryBus } from "@nestjs/cqrs";
-import type { SignInRequest, SignInResponse, SignUpRequest, SignUpResponse } from "src/generated/type";
+import { CommandBus } from "@nestjs/cqrs";
+import type { SignInResponse, SignUpRequest, SignUpResponse } from "src/generated/type";
 import { schemas } from "src/generated/client";
 import { SignUpCommand } from "./commands/sign-up.command";
 import { AppLoggerService } from "src/infrastructure/logger/logger.service";
-import { AuthGuard } from "@nestjs/passport";
-import type { Request, Response } from "express";
+import type { Response, Request } from "express";
 import { SignInData } from "src/common/decorators/sign-in.decorator";
+import { SignInLocalGuard } from "src/common/guards/local.guard";
+import { AppConfigService } from "src/config/config.service";
+import { CurrentUser } from "src/common/decorators/current-user.decorator";
+import type { JwtPayload } from "./strategies/access-token.strategy";
+import { AccessTokenGuard } from "src/common/guards/access-token.guard";
+import { SignOutCurrentDeviceCommand } from "./commands/sign-out-current-device.command";
+import { BaseException } from "src/common/errors/base.exception";
+import { ErrorCode } from "src/common/constants/error-codes";
 
 @Controller('auth')
 export class AuthController {
     private readonly context = AuthController.name;
     constructor(
         private readonly commandBus: CommandBus,
-        private readonly queryBus: QueryBus,
         private readonly logger: AppLoggerService,
+        private readonly appConfigService: AppConfigService,
     ) { }
 
     @Post('sign-up')
@@ -43,21 +50,45 @@ export class AuthController {
     }
 
     @Post('sign-in')
-    @UseGuards(AuthGuard('local'))
+    @UseGuards(SignInLocalGuard)
     async signIn(
         @Res({ passthrough: true }) res: Response,
         @SignInData() signInData: SignInResponse,
     ) {
         res.cookie('refresh_token', signInData.refreshToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: this.appConfigService.app.isProd,
             sameSite: 'strict',
-            expires: new Date(signInData.expiresAt!)
+            expires: new Date(signInData.refreshExpiresAt as string)
         });
         return {
             accessToken: signInData.accessToken,
             tokenType: signInData.tokenType,
             expiresAt: signInData.expiresAt,
         };
+    }
+
+    @Post('sign-out')
+    @UseGuards(AccessTokenGuard)
+    async signOut(
+        @CurrentUser() payload: JwtPayload,
+        @Req() req: Request,
+    ) {
+        const refreshToken = req?.cookies?.refresh_token;
+        if (!refreshToken) {
+            throw new BaseException({
+                code: ErrorCode.UNAUTHORIZED,
+                message: 'Refresh token not found',
+            })
+        }
+        const device = req.headers['user-agent'] || 'unknown';
+        const ip = req.ip || '0.0.0.0';
+
+        await this.commandBus.execute(new SignOutCurrentDeviceCommand(
+            refreshToken,
+            payload,
+            device,
+            ip
+        ))
     }
 }

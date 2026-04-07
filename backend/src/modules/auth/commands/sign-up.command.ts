@@ -1,5 +1,4 @@
 import { ICommand } from "@nestjs/cqrs";
-import { SignUpRequest } from "src/generated/type";
 
 export class SignUpCommand implements ICommand {
     constructor(

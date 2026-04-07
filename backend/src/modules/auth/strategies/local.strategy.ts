@@ -49,7 +49,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
 
         const accessTokenId = uuidv4();
         const refreshTokenId = uuidv4();
-        const device = req.headers['x-device-id'] as string || 'unknown';
+        const device = req.headers['user-agent'] as string || 'unknown';
         const ip = req.ip || '0.0.0.0';
         const now = Math.floor(Date.now() / 1000);
 
@@ -103,6 +103,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
             tokenType: 'Bearer',
             expiresAt: accessExpiresAt,
             refreshToken: refreshToken,
+            refreshExpiresAt: refreshExpiresAt,
         };
     }
 }

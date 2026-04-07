@@ -17,11 +17,6 @@ export class UserController {
     async getMe(
         @CurrentUser() user: JwtPayload
     ): Promise<UserResponse> {
-        try {
-            return this.queryBus.execute(new GetByIdQuery(user.sub));
-        } catch (err: any) {
-            console.log(err);
-            throw err;
-        }
+        return this.queryBus.execute(new GetByIdQuery(user.sub));
     }
 }

@@ -6,6 +6,7 @@ import { ResponseInterceptor } from "./common/interceptors/response.interceptor"
 import * as YAML from 'yamljs';
 import { SwaggerModule } from "@nestjs/swagger";
 import { AppConfigService } from "./config/config.service";
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
@@ -13,6 +14,7 @@ async function bootstrap() {
     const conf = app.get(AppConfigService);
 
     app.setGlobalPrefix('api/v1');
+    app.use(cookieParser());
 
     const document = YAML.load('./openapi/openapi.yaml')
     SwaggerModule.setup('api/v1/docs', app, document);
