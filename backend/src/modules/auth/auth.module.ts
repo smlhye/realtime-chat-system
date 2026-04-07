@@ -17,6 +17,10 @@ import { SignOutCurrentDeviceHandler } from "./commands/handlers/sign-out-curren
 import { SignUpCommand } from "./commands/sign-up.command";
 import { RedisService } from "src/infrastructure/redis/redis.service";
 import { AccessTokenStrategy } from "./strategies/access-token.strategy";
+import { SessionCleanupService } from "./services/session-cleanup.service";
+import { RefreshTokenStrategy } from "./strategies/refresh-token.strategy";
+import { RefreshCommand } from "./commands/refresh.command";
+import { RefreshHandler } from "./commands/handlers/refresh.handler";
 
 @Module({
     imports: [CqrsModule],
@@ -34,12 +38,17 @@ import { AccessTokenStrategy } from "./strategies/access-token.strategy";
         UserRepository,
         RedisService,
         AccessTokenStrategy,
+        SessionCleanupService,
+        RefreshTokenStrategy,
 
         SignUpCommand,
         SignUpHandler,
 
         SignOutCurrentDeviceCommand,
         SignOutCurrentDeviceHandler,
+
+        RefreshCommand,
+        RefreshHandler,
     ],
     controllers: [AuthController]
 })

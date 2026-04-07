@@ -29,8 +29,8 @@ export class RefreshTokenStrategy extends PassportStrategy(Strategy, 'jwt-refres
             passReqToCallback: true,
         })
     }
-    
+
     async validate(req: Request, payload: RefreshTokenPayload) {
-        
+        return payload;
     }
 }

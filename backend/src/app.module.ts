@@ -6,6 +6,7 @@ import { HealthCheckModule } from "./modules/health/health.module";
 import { RedisModule } from "./infrastructure/redis/redis.module";
 import { UserModule } from "./modules/user/user.module";
 import { AuthModule } from "./modules/auth/auth.module";
+import { ScheduleModule } from "@nestjs/schedule";
 
 @Module({
     imports: [
@@ -16,6 +17,7 @@ import { AuthModule } from "./modules/auth/auth.module";
         RedisModule,
         UserModule,
         AuthModule,
+        ScheduleModule.forRoot(),
     ],
 })
 export class AppModule { }

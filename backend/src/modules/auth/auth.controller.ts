@@ -14,6 +14,10 @@ import { AccessTokenGuard } from "src/common/guards/access-token.guard";
 import { SignOutCurrentDeviceCommand } from "./commands/sign-out-current-device.command";
 import { BaseException } from "src/common/errors/base.exception";
 import { ErrorCode } from "src/common/constants/error-codes";
+import { RefreshTokenGuard } from "src/common/guards/refresh-token.guard";
+import { RefreshToken } from "src/common/decorators/refresh.decorator";
+import type { RefreshTokenPayload } from "./strategies/refresh-token.strategy";
+import { RefreshCommand } from "./commands/refresh.command";
 
 @Controller('auth')
 export class AuthController {
@@ -90,5 +94,13 @@ export class AuthController {
             device,
             ip
         ))
+    }
+
+    @Post('refresh')
+    @UseGuards(RefreshTokenGuard)
+    async refresh(
+        @RefreshToken() refreshTokenPayload: RefreshTokenPayload
+    ) {
+        return this.commandBus.execute(new RefreshCommand(refreshTokenPayload));
     }
 }
