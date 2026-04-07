@@ -24,19 +24,18 @@ export class GlobalExceptionFilter implements ExceptionFilter {
             success = exception.success;
         } else if (exception instanceof HttpException) {
             status = exception.getStatus();
+            code = this.mapHttpStatusToErrorCode(status);
             const excResponse = exception.getResponse();
             if (typeof excResponse === 'string') {
                 message = excResponse;
-                code = ErrorCode.INTERNAL_ERROR;
             } else if (typeof excResponse === 'object' && excResponse !== null) {
                 const respObj = excResponse as Record<string, any>;
-                message = respObj.message ?? 'Bad Request';
-                code = respObj.code ?? ErrorCode.INTERNAL_ERROR;
+                message = respObj.message ?? "Bad Request";
+                code = respObj.code ?? code;
                 data = respObj.data ?? null;
                 success = respObj.success ?? false;
             } else {
-                message = 'Bad Request';
-                code = ErrorCode.INTERNAL_ERROR;
+                message = "Bad Request";
             }
         } else {
             status = HttpStatus.INTERNAL_SERVER_ERROR;
@@ -59,5 +58,32 @@ export class GlobalExceptionFilter implements ExceptionFilter {
             return (response as { message: string | string[] }).message;
         }
         return undefined;
+    }
+
+    private mapHttpStatusToErrorCode(status: HttpStatus): ErrorCode {
+        switch (status) {
+            case HttpStatus.BAD_REQUEST:
+                return ErrorCode.VALIDATION_FAILED;
+            case HttpStatus.UNAUTHORIZED:
+                return ErrorCode.UNAUTHORIZED;
+            case HttpStatus.FORBIDDEN:
+                return ErrorCode.FORBIDDEN;
+            case HttpStatus.NOT_FOUND:
+                return ErrorCode.NOT_FOUND;
+            case HttpStatus.CONFLICT:
+                return ErrorCode.CONFLICT;
+            case HttpStatus.TOO_MANY_REQUESTS:
+                return ErrorCode.TOO_MANY_REQUESTS;
+            case HttpStatus.INTERNAL_SERVER_ERROR:
+                return ErrorCode.INTERNAL_ERROR;
+            case HttpStatus.BAD_GATEWAY:
+                return ErrorCode.BAD_GATEWAY;
+            case HttpStatus.SERVICE_UNAVAILABLE:
+                return ErrorCode.SERVICE_UNAVAILABLE;
+            case HttpStatus.GATEWAY_TIMEOUT:
+                return ErrorCode.GATEWAY_TIMEOUT;
+            default:
+                return ErrorCode.INTERNAL_ERROR
+        }
     }
 }

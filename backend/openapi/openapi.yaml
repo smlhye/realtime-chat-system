@@ -1,0 +1,215 @@
+openapi: 3.0.0
+info:
+  title: Realtime Chat API
+  version: 1.0.0
+  description: API for multi-device auth and chat system
+servers:
+  - url: http://localhost:3000/api/v1
+paths:
+  /auth/sign-up:
+    post:
+      tags:
+        - Auth
+      summary: Sign up a new user
+      requestBody: 
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignUpRequest'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SignUpResponse"
+        '400':
+          description: Invalid input
+
+  /auth/sign-in:
+    post:
+      tags:
+        - Auth
+      summary: Sign in and issue tokens
+      requestBody: 
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignInRequest"
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignInResponse'
+        '401':
+          description: Invalid credentials
+  
+  /auth/sign-out:
+    post:
+      tags:
+        - Auth
+      summary: Sign out current device
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Signed out successfully
+  
+  /auth/sign-out-all:
+    post:
+      tags:
+        - Auth
+      summary: Sign out all devices
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Signed out from all devices
+
+  /auth/refresh:
+    post:
+      tags:
+        - Auth
+      summary: Refresh access token using HttpOnly cookie
+      description: Refreshes the access token using the HttpOnly refresh token cookie; no request body is needed
+      responses:
+        '200':
+          description: New access token issued
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/SignInResponse"
+
+  /api/me:
+    get:
+      tags:
+        - User
+      summary: Get current user info
+      description: Returns the currently authenticated user's profile. Requires Bearer access token
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current user info retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: Unauthorized, invalid or expired token
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: refreshToken
+
+  schemas:
+    SignUpRequest:
+      type: object
+      required:
+        - username
+        - email
+        - password
+        - fullName
+      properties:
+        username:
+          type: string
+          description: The user's username, must be unique
+          example: admin
+        email: 
+          type: string
+          format: email
+          example: admin@gmail.com
+          description: The user's email address, must be unique
+        password:
+          type: string
+          format: password
+          minLength: 8
+          pattern: "^(?=.*[A-Z])(?=.*[!@#$%^&*]).*$"
+          example: Admin@123456
+          description: The user's password, minimum 8 characters recommended
+        fullName:
+          type: string
+          example: 'Admin Realtime Chat'
+          description: Full name of the user
+
+    SignUpResponse:
+      type: object
+      properties:
+        id: 
+          type: string
+          description: Unique identifier of the user
+        username:
+          type: string
+          description: Username of the user
+        email:
+          type: string
+          description: Email of the user
+        fullName:
+          type: string
+          description: Full name of the user
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the user account was created
+        
+    SignInRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          example: admin
+          description: Registered username of the user
+        password:
+          type: string
+          format: password
+          example: Admin@123456
+          description: Password for authentication
+
+    SignInResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: JWT access token used for calling protected APIs
+        tokenType:
+          type: string
+          description: Type of token, usually "Bearer"
+          example: Bearer
+        expiresAt:
+          type: string
+          format: date-time
+          description: Expiration time of the access token
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the user
+        username:
+          type: string
+          description: Username of the user
+        email:
+          type: string
+          description: Email of the user
+        fullName:
+          type: string
+          description: Full name of the user
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the user account was created

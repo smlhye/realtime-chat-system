@@ -36,7 +36,7 @@ services:
     redis:
         image: redis:7
         container_name: realtime_redis
-        restart: always
+        restart: unless-stopped
         command: ["redis-server", "--appendonly", "yes"]
         ports:
             - "${REDIS_PORT}:6379"

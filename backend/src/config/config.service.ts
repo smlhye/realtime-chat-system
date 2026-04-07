@@ -5,7 +5,7 @@ import { ConfigService } from '@nestjs/config';
 export class AppConfigService {
     constructor(private configService: ConfigService) { }
 
-    get App() {
+    get app() {
         return {
             name: this.configService.get<string>('APP_NAME'),
             port: this.configService.get<number>('PORT'),
