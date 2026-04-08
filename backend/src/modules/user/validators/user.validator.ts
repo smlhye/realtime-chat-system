@@ -77,4 +77,29 @@ export class UserValidator {
             });
         }
     }
+
+    async checkUserId(userId: string, mode: CheckMode = "exists") {
+        const user = await this.userRepo.findById(userId);
+        if (mode === "unique") {
+            if (user) {
+                throw new BaseException({
+                    code: ErrorCode.USERNAME_ALREADY_EXISTS,
+                    message: 'UserId already exists',
+                });
+            }
+        } else if (mode === "exists") {
+            if (!user) {
+                throw new BaseException({
+                    code: ErrorCode.USER_NOT_FOUND,
+                    message: `UserId with id=${userId} not found`,
+                });
+            }
+            return user;
+        } else {
+            throw new BaseException({
+                code: ErrorCode.INTERNAL_ERROR,
+                message: 'Invalid check mode [UserId]',
+            });
+        }
+    }
 }

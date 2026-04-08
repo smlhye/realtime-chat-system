@@ -12,6 +12,26 @@ export class ChatUserRepository {
         return this.prisma.chatUser.create({ data });
     }
 
+    async createMany(userIds: string[], chatId: string): Promise<ChatUser[]> {
+        const now = new Date();
+
+        await this.prisma.chatUser.createMany({
+            data: userIds.map(userId => ({
+                chatId,
+                userId,
+                lastSeenAt: now,
+            })),
+            skipDuplicates: true,
+        });
+
+        return this.prisma.chatUser.findMany({
+            where: {
+                chatId,
+                userId: { in: userIds },
+            },
+        });
+    }
+
     async update(id: string, data: Prisma.ChatUserUpdateInput): Promise<ChatUser | null> {
         return this.prisma.chatUser.update({
             where: { id },

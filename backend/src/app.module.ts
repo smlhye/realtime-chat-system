@@ -7,6 +7,7 @@ import { RedisModule } from "./infrastructure/redis/redis.module";
 import { UserModule } from "./modules/user/user.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { ScheduleModule } from "@nestjs/schedule";
+import { ChatModule } from "./modules/chat/chat.module";
 
 @Module({
     imports: [
@@ -18,6 +19,7 @@ import { ScheduleModule } from "@nestjs/schedule";
         UserModule,
         AuthModule,
         ScheduleModule.forRoot(),
+        ChatModule,
     ],
 })
 export class AppModule { }

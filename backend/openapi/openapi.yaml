@@ -146,14 +146,14 @@ paths:
         content:
           application/json:
             schema: 
-              $ref: "#/components/schemas/AddUserToChatRequest"
+              $ref: "#/components/schemas/AddUsersToChatRequest"
       responses:
         '200':
           description: User added to chat successfully
           content:
             application/json:
               schema: 
-                $ref: "#/components/schemas/AddUserToChatResponse"
+                $ref: "#/components/schemas/AddUsersToChatResponse"
         '400':
           description: User already exists in the chat or invalid input
         '401':
@@ -204,10 +204,6 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-    cookieAuth:
-      type: apiKey
-      in: cookie
-      name: refreshToken
 
   schemas:
     SignUpRequest:
@@ -313,15 +309,17 @@ components:
     CreateChatRequest:
       type: object
       required:
-        - isGroup
+        - users
       properties:
         name:
           type: string
           description: Name of the chat (required for group chats, optional for private chats)
-        isGroup: 
-          type: boolean
-          example: false
-          description: Indicates whether the chat is a group chat (true) or a one-on-one chat (false)
+        users: 
+          type: array
+          description: List of user IDs to be added to the chat
+          items:
+            type: string
+          example: ["user_1", "user_2"]
         
     CreateChatResponse:
       type: object
@@ -340,27 +338,36 @@ components:
           format: date-time
           description: The date and time when the chat was created
 
-    AddUserToChatRequest:
+    AddUsersToChatRequest:
       type: object
       required:
-        - userId
+        - userIds
       properties:
-        userId:
-          type: string
-          description: Unique identifier of the user to be added to the chat
+        userIds:
+          type: array          
+          items:
+            type: string
+            description: Unique identifier of a user
+          description: List of unique user IDs to be added to the chat
 
-    AddUserToChatResponse:
+    AddUsersToChatResponse:
       type: object
       properties:
-        id: 
-          type: string
-          description: Unique identifier of the user in chat
         chatId:
-          type: string
-          description: ID of the chat
-        userId: 
-          type: string
-          description: ID of the added user
+            type: string
+            description: Unique identifier of the chat
+        users: 
+          type: array
+          description: List of users added to the chat
+          items: 
+            type: object
+            properties:
+              id: 
+                type: string
+                description: Unique identifier of the ChatUser record
+              userId: 
+                type: string
+                description: Unique identifier of the user added to the chat
     
     SendMessageRequest:
       type: object

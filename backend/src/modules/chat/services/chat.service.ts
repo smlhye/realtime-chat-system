@@ -1,16 +1,80 @@
 import { Injectable } from "@nestjs/common";
 import { ChatRepository } from "../repositories/chat.repository";
 import { AppLoggerService } from "src/infrastructure/logger/logger.service";
+import { AddUserToChatRequest, AddUserToChatResponse, CreateChatRequest, CreateChatResponse } from "src/generated/type";
+import { ChatUserRepository } from "../repositories/chat-user.repository";
 
 @Injectable()
 export class ChatService {
     private readonly context = ChatService.name;
     constructor(
+        private readonly chatUserRepo: ChatUserRepository,
         private readonly chatRepo: ChatRepository,
         private readonly logger: AppLoggerService,
     ) { }
 
-    async createRoomChat() {
-        
+    async createRoomChat(data: CreateChatRequest): Promise<CreateChatResponse> {
+        const { name, users, isGroup } = data;
+        const now = new Date();
+
+        const createdChat = await this.chatRepo.create({
+            name,
+            isGroup: isGroup as boolean,
+            createdAt: now,
+        })
+
+        Promise.all(users.map(user => {
+            this.chatUserRepo.create({
+                chat: {
+                    connect: {
+                        id: createdChat.id,
+                    }
+                },
+                user: {
+                    connect: {
+                        id: user,
+                    }
+                },
+                lastSeenAt: now
+            })
+        }))
+
+        return {
+            id: createdChat.id,
+            name: createdChat.name ?? undefined,
+            isGroup: createdChat.isGroup,
+            createdAt: createdChat.createdAt.toISOString(),
+        };
+    }
+
+    async addUsersToChat(data: AddUserToChatRequest): Promise<AddUserToChatResponse> {
+        const { chatId, userIds } = data;
+        const now = new Date();
+        const createdChatUsers = await Promise.all(
+            userIds.map(id => this.chatUserRepo.create({
+                chat: { connect: { id: chatId as string } },
+                user: { connect: { id } },
+                lastSeenAt: now,
+            }))
+        );
+        return {
+            chatId: chatId as string,
+            users: createdChatUsers.map(user => ({
+                id: user.id,
+                userId: user.userId
+            }))
+        }
+    }
+
+    async addManyUsersToChat(userIds: string[], chatId: string) {
+        return this.chatUserRepo.createMany(userIds, chatId);
+    }
+
+    async findPrivateBetweenUsers(userA: string, userB: string) {
+        return this.chatRepo.findPrivateChatBetweenUsers(userA, userB);
+    }
+
+    async findChatByIdAndUserId(chatId: string, userId: string) {
+        return this.chatRepo.findByChatIdAndUserId(chatId, userId);
     }
 }
