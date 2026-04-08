@@ -57,6 +57,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
 
         const accessPayload: JwtPayload = {
             sub: user?.id!,
+            tokenVersion: user?.tokenVersion!,
             aud: this.appConfigService.jwt.audience,
             iss: this.appConfigService.jwt.issuer,
             iat: now,

@@ -18,6 +18,7 @@ import { RefreshTokenGuard } from "src/common/guards/refresh-token.guard";
 import { RefreshToken } from "src/common/decorators/refresh.decorator";
 import type { RefreshTokenPayload } from "./strategies/refresh-token.strategy";
 import { RefreshCommand } from "./commands/refresh.command";
+import { SignOutAllDeviceCommand } from "./commands/sign-out-all-device.command";
 
 @Controller('auth')
 export class AuthController {
@@ -102,5 +103,13 @@ export class AuthController {
         @RefreshToken() refreshTokenPayload: RefreshTokenPayload
     ) {
         return this.commandBus.execute(new RefreshCommand(refreshTokenPayload));
+    }
+
+    @Post('sign-out-all')
+    @UseGuards(AccessTokenGuard)
+    async signOutAll(
+        @CurrentUser() jwtPayload: JwtPayload,
+    ) {
+        return this.commandBus.execute(new SignOutAllDeviceCommand(jwtPayload));
     }
 }

@@ -43,6 +43,19 @@ export class SessionRepository {
         })
     }
 
+    async revokedTokenByUserId(userId: string): Promise<void> {
+        const now = new Date();
+        await this.prisma.session.updateMany({
+            where: {
+                userId,
+                isActive: true,
+            }, data: {
+                isActive: false,
+                revokedAt: now,
+            }
+        })
+    }
+
     async cleanToken(): Promise<number> {
         const now = new Date();
         const result = await this.prisma.session.deleteMany({

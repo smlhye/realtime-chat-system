@@ -21,6 +21,9 @@ import { SessionCleanupService } from "./services/session-cleanup.service";
 import { RefreshTokenStrategy } from "./strategies/refresh-token.strategy";
 import { RefreshCommand } from "./commands/refresh.command";
 import { RefreshHandler } from "./commands/handlers/refresh.handler";
+import { SignOutAllDeviceCommand } from "./commands/sign-out-all-device.command";
+import { SignOutAllDeviceHandler } from "./commands/handlers/sign-out-all-device.handler";
+import { UserService } from "../user/services/user.service";
 
 @Module({
     imports: [CqrsModule],
@@ -40,6 +43,7 @@ import { RefreshHandler } from "./commands/handlers/refresh.handler";
         AccessTokenStrategy,
         SessionCleanupService,
         RefreshTokenStrategy,
+        UserService,
 
         SignUpCommand,
         SignUpHandler,
@@ -49,6 +53,9 @@ import { RefreshHandler } from "./commands/handlers/refresh.handler";
 
         RefreshCommand,
         RefreshHandler,
+
+        SignOutAllDeviceCommand,
+        SignOutAllDeviceHandler,
     ],
     controllers: [AuthController]
 })

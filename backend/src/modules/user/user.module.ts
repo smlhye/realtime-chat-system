@@ -10,6 +10,7 @@ import { GetByIdQuery } from "./queries/get-by-id.query";
 import { GetByIdHandler } from "./queries/handlers/get-by-id.handler";
 import { AccessTokenStrategy } from "../auth/strategies/access-token.strategy";
 import { RedisService } from "src/infrastructure/redis/redis.service";
+import { UserService } from "./services/user.service";
 
 @Module({
     imports:[CqrsModule],
@@ -17,6 +18,7 @@ import { RedisService } from "src/infrastructure/redis/redis.service";
         UserRepository,
         UserValidator,
         UserSecurityService,
+        UserService,
 
         CreateUserCommand,
         CreateUserHandler,
@@ -31,7 +33,7 @@ import { RedisService } from "src/infrastructure/redis/redis.service";
         UserController,
     ],
     exports: [
-        
+        UserService,
     ]
 })
 export class UserModule { }

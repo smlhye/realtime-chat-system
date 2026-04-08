@@ -71,6 +71,11 @@ export class SessionService {
         this.logger.log(`Revoked session by id=${id}`, this.context);
     }
 
+    async revokedTokenByUserId(userId: string) {
+        this.logger.log(`Revoking sessions by userId=${userId}`, this.context);
+        await this.sessionRepository.revokedTokenByUserId(userId);
+    }
+
     async cleanTokensRevoked(): Promise<number> {
         this.logger.log(`Cleaning revoked/expired/inactive sessions`, this.context);
         const count = await this.sessionRepository.cleanToken();
