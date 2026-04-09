@@ -1,8 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { ChatRepository } from "../repositories/chat.repository";
 import { AppLoggerService } from "src/infrastructure/logger/logger.service";
-import { AddUserToChatRequest, AddUserToChatResponse, CreateChatRequest, CreateChatResponse } from "src/generated/type";
+import { AddUserToChatRequest, AddUserToChatResponse, CreateChatRequest, CreateChatResponse, SendMessageRequest } from "src/generated/type";
 import { ChatUserRepository } from "../repositories/chat-user.repository";
+import { MessageRepository } from "../repositories/message.repository";
 
 @Injectable()
 export class ChatService {
@@ -10,6 +11,7 @@ export class ChatService {
     constructor(
         private readonly chatUserRepo: ChatUserRepository,
         private readonly chatRepo: ChatRepository,
+        private readonly messageRepo: MessageRepository,
         private readonly logger: AppLoggerService,
     ) { }
 
@@ -76,5 +78,22 @@ export class ChatService {
 
     async findChatByIdAndUserId(chatId: string, userId: string) {
         return this.chatRepo.findByChatIdAndUserId(chatId, userId);
+    }
+
+    async sendMessage(data: SendMessageRequest) {
+        const { chatId, senderId, content } = data;
+        return this.messageRepo.create({
+            sender: {
+                connect: {
+                    id: senderId as string
+                }
+            },
+            chat: {
+                connect: {
+                    id: chatId as string
+                }
+            },
+            content,
+        })
     }
 }

@@ -1,11 +1,12 @@
 import { Body, Controller, Param, Post, Req, UseGuards } from "@nestjs/common";
 import { CurrentUser } from "src/common/decorators/current-user.decorator";
 import { AccessTokenGuard } from "src/common/guards/access-token.guard";
-import type { AddUserToChatRequest, CreateChatRequest } from "src/generated/type";
+import type { AddUserToChatRequest, CreateChatRequest, SendMessageRequest } from "src/generated/type";
 import type { JwtPayload } from "../auth/strategies/access-token.strategy";
 import { CommandBus } from "@nestjs/cqrs";
 import { CreateChatCommand } from "./commands/create-chat.command";
 import { AddUsersToChatCommand } from "./commands/add-user-to-chat.command";
+import { SendMessageCommand } from "./commands/send-message.command";
 
 @Controller('chats')
 export class ChatController {
@@ -32,5 +33,15 @@ export class ChatController {
         @CurrentUser() currentUser: JwtPayload,
     ) {
         return this.commandBus.execute(new AddUsersToChatCommand(currentUser.sub, chatId, data.userIds));
+    }
+
+    @Post(':chatId/messages')
+    @UseGuards(AccessTokenGuard)
+    async sendMessage(
+        @Param('chatId') chatId: string,
+        @Body() data: SendMessageRequest,
+        @CurrentUser() currentUser: JwtPayload,
+    ) {
+        return this.commandBus.execute(new SendMessageCommand(currentUser.sub, chatId, data.content));
     }
 }

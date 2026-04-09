@@ -12,6 +12,8 @@ import { UserRepository } from "../user/repositories/user.repository";
 import { ChatController } from "./chat.controller";
 import { AddUsersToChatCommand } from "./commands/add-user-to-chat.command";
 import { AddUsersToChatHandler } from "./commands/handlers/add-user-to-chat.handler";
+import { SendMessageCommand } from "./commands/send-message.command";
+import { SendMessageHandler } from "./commands/handlers/send-message.handler";
 
 @Module({
     imports: [
@@ -34,6 +36,9 @@ import { AddUsersToChatHandler } from "./commands/handlers/add-user-to-chat.hand
 
         AddUsersToChatCommand,
         AddUsersToChatHandler,
+
+        SendMessageCommand,
+        SendMessageHandler,
     ],
     controllers: [
         ChatController,
