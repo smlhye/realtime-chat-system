@@ -13,35 +13,35 @@ export class AuthSecurityService {
         private readonly jwtService: JwtService,
     ) { }
 
-    generateAccessToken(payload: JwtPayload): string {
+    async generateAccessToken(payload: JwtPayload): Promise<string> {
         return this.jwtService.sign(
             payload, {
             secret: this.appConfigService.jwt.secret,
         });
     }
 
-    generateRefreshToken(payload: RefreshTokenPayload): string {
+    async generateRefreshToken(payload: RefreshTokenPayload): Promise<string> {
         return this.jwtService.sign(
             payload, {
             secret: this.appConfigService.jwt.refreshSecret,
         });
     }
 
-    getAccessTokenExpiresIn(): number {
+    async getAccessTokenExpiresIn(): Promise<number> {
         return parseToSeconds(this.appConfigService.jwt.expiresIn as StringValue);
     }
 
-    getRefreshTokenExpiresIn(): number {
+    async getRefreshTokenExpiresIn(): Promise<number> {
         return parseToSeconds(this.appConfigService.jwt.refreshExpiresIn as StringValue);
     }
 
-    verifyAccessToken(token: string): JwtPayload {
+    async verifyAccessToken(token: string): Promise<JwtPayload> {
         return this.jwtService.verify(token, {
             secret: this.appConfigService.jwt.secret,
         });
     }
 
-    verifyRefreshToken(token: string): RefreshTokenPayload {
+    async verifyRefreshToken(token: string): Promise<RefreshTokenPayload> {
         return this.jwtService.verify(token, {
             secret: this.appConfigService.jwt.refreshSecret,
         });

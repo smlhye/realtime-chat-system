@@ -1,13 +1,18 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { SessionRepository } from "../repositories/session.repository";
 import { AppLoggerService } from "src/infrastructure/logger/logger.service";
+import { JwtPayload } from "../strategies/access-token.strategy";
+import { UserService } from "src/modules/user/services/user.service";
+import { RedisService } from "src/infrastructure/redis/redis.service";
 
 @Injectable()
 export class SessionService {
     private readonly context: string = SessionService.name;
     constructor(
         private readonly sessionRepository: SessionRepository,
+        private readonly userService: UserService,
         private readonly logger: AppLoggerService,
+        private readonly redisService: RedisService,
     ) { }
 
     async createSession(
@@ -81,5 +86,30 @@ export class SessionService {
         const count = await this.sessionRepository.cleanToken();
         this.logger.log(`Cleaned ${count} sessions`, this.context);
         return count;
+    }
+
+    async validateAccessToken(payload: JwtPayload) {
+        this.logger.log(`Validating access token for sub=${payload.sub}`, this.context);
+        const user = await this.userService.findById(payload.sub);
+        if (!user) {
+            this.logger.warn(`User not found: ${payload.sub}`, this.context);
+            throw new UnauthorizedException('User is not found');
+        }
+        if (payload.tokenVersion !== user.tokenVersion) {
+            this.logger.warn(`Token version mismatch for user=${user.id}`, this.context);
+            throw new UnauthorizedException('Token is revoked');
+        }
+        const jti = payload.jti;
+        if (jti) {
+            const isBlacklisted = await this.redisService
+                .getClient()
+                .get(`bl:${jti}`);
+
+            if (isBlacklisted) {
+                this.logger.warn(`Token blacklisted jti=${jti}`, this.context);
+                throw new UnauthorizedException('Token has been revoked');
+            }
+        }
+        return user;
     }
 }

@@ -80,6 +80,10 @@ export class ChatService {
         return this.chatRepo.findByChatIdAndUserId(chatId, userId);
     }
 
+    async findUserChats(userId: string) {
+        return this.chatRepo.findUserChats(userId);
+    }
+
     async sendMessage(data: SendMessageRequest) {
         const { chatId, senderId, content } = data;
         return this.messageRepo.create({
@@ -95,5 +99,23 @@ export class ChatService {
             },
             content,
         })
+    }
+
+    async updateLastSeen(chatId: string, userId: string) {
+        const now = new Date();
+        const chatUser = await this.chatUserRepo.findByChatIdAndUserId(
+            chatId,
+            userId,
+        );
+        if (!chatUser) {
+            throw new Error('ChatUser not found');
+        }
+        await this.chatUserRepo.update(chatUser.id, {
+            lastSeenAt: now,
+        });
+        return {
+            success: true,
+            lastSeenAt: now,
+        };
     }
 }

@@ -31,7 +31,7 @@ export class SendMessageHandler implements ICommandHandler<SendMessageCommand> {
             senderId: message.senderId,
             chatId: message.chatId,
             content: message.content,
-            createdAt: message.createdAt.toISOString()
+            createdAt: message.createdAt.toISOString(),
         }
     }
 }

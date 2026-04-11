@@ -61,7 +61,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
             aud: this.appConfigService.jwt.audience,
             iss: this.appConfigService.jwt.issuer,
             iat: now,
-            exp: now + this.authSecurityService.getAccessTokenExpiresIn(),
+            exp: now + await (this.authSecurityService.getAccessTokenExpiresIn()),
             jti: accessTokenId,
         };
 
@@ -71,11 +71,11 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
             device: device,
             ip: ip,
             iat: now,
-            exp: now + this.authSecurityService.getRefreshTokenExpiresIn(),
+            exp: now + await(this.authSecurityService.getRefreshTokenExpiresIn()),
         };
 
-        const accessToken = this.authSecurityService.generateAccessToken(accessPayload);
-        const refreshToken = this.authSecurityService.generateRefreshToken(refreshPayload);
+        const accessToken = await this.authSecurityService.generateAccessToken(accessPayload);
+        const refreshToken = await this.authSecurityService.generateRefreshToken(refreshPayload);
         const accessExpiresAt = new Date(accessPayload.exp! * 1000).toISOString();
         const refreshExpiresAt = new Date(refreshPayload.exp! * 1000).toISOString();
 

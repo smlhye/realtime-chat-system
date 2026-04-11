@@ -11,6 +11,8 @@ import { GetByIdHandler } from "./queries/handlers/get-by-id.handler";
 import { AccessTokenStrategy } from "../auth/strategies/access-token.strategy";
 import { RedisService } from "src/infrastructure/redis/redis.service";
 import { UserService } from "./services/user.service";
+import { SessionService } from "../auth/services/session.service";
+import { SessionRepository } from "../auth/repositories/session.repository";
 
 @Module({
     imports:[CqrsModule],
@@ -19,6 +21,9 @@ import { UserService } from "./services/user.service";
         UserValidator,
         UserSecurityService,
         UserService,
+
+        SessionService,
+        SessionRepository,
 
         CreateUserCommand,
         CreateUserHandler,

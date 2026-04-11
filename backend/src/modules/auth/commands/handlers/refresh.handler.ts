@@ -59,11 +59,11 @@ export class RefreshHandler implements ICommandHandler<RefreshCommand> {
             aud: this.appConfigService.jwt.audience,
             iss: this.appConfigService.jwt.issuer,
             iat: now,
-            exp: now + this.authSecurityService.getAccessTokenExpiresIn(),
+            exp: now + await this.authSecurityService.getAccessTokenExpiresIn(),
             jti: accessTokenId,
         };
 
-        const accessToken = this.authSecurityService.generateAccessToken(accessPayload);
+        const accessToken = await this.authSecurityService.generateAccessToken(accessPayload);
         const accessExpiresAt = new Date(accessPayload.exp! * 1000).toISOString();
         return {
             accessToken: accessToken,

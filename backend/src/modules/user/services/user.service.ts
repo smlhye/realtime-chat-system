@@ -18,7 +18,8 @@ export class UserService {
                 message: `User with id:${userId} is not found`,
             })
         }
-        return user;
+        const { password, ...safeUser } = user;
+        return safeUser;
     }
 
     async increaseTokenVersion(userId: string) {

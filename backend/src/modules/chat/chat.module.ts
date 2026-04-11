@@ -14,6 +14,15 @@ import { AddUsersToChatCommand } from "./commands/add-user-to-chat.command";
 import { AddUsersToChatHandler } from "./commands/handlers/add-user-to-chat.handler";
 import { SendMessageCommand } from "./commands/send-message.command";
 import { SendMessageHandler } from "./commands/handlers/send-message.handler";
+import { ChatGateway } from "./ws/chat.gateway";
+import { AuthSecurityService } from "../auth/services/auth-security.service";
+import { SessionService } from "../auth/services/session.service";
+import { JwtService } from "@nestjs/jwt";
+import { SessionRepository } from "../auth/repositories/session.repository";
+import { UserService } from "../user/services/user.service";
+import { RedisService } from "src/infrastructure/redis/redis.service";
+import { WsChatGuard } from "src/common/guards/ws-chat.guard";
+import { WsAuthGuard } from "src/common/guards/ws-auth.guard";
 
 @Module({
     imports: [
@@ -22,8 +31,19 @@ import { SendMessageHandler } from "./commands/handlers/send-message.handler";
     providers: [
         AppLoggerService,
         
+        ChatGateway,
+        AuthSecurityService,
+        SessionService,
+        SessionRepository,
+        JwtService,
+        WsChatGuard,
+        WsAuthGuard,
+
         UserValidator,
+        UserService,
         UserRepository,
+
+        RedisService,
 
         ChatUserRepository,
         ChatRepository,

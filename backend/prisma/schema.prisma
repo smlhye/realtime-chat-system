@@ -8,19 +8,19 @@ datasource db {
 }
 
 model User {
-    id        String     @id @default(cuid())
+    id        String   @id @default(cuid())
     fullName  String
-    username  String     @unique
-    email     String     @unique
+    username  String   @unique
+    email     String   @unique
     password  String
-    createdAt DateTime   @default(now())
-    updatedAt DateTime   @updatedAt
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 
-    tokenVersion  Int      @default(1)
+    tokenVersion Int @default(1)
 
-    chats     ChatUser[]
-    messages  Message[]
-    sessions  Session[]
+    chats    ChatUser[]
+    messages Message[]
+    sessions Session[]
 }
 
 model Chat {
@@ -40,9 +40,12 @@ model ChatUser {
     user   User   @relation(fields: [userId], references: [id])
     userId String
 
+    role       String   @default("member")
     lastSeenAt DateTime @default(now())
 
     @@unique([chatId, userId])
+    @@index([userId])
+    @@index([chatId])
 }
 
 model Message {
@@ -54,10 +57,8 @@ model Message {
     chatId    String
     createdAt DateTime @default(now())
 
-    delivered Boolean @default(false)
-    read      Boolean @default(false)
-
     @@index([chatId, createdAt])
+    @@index([senderId])
 }
 
 model Session {

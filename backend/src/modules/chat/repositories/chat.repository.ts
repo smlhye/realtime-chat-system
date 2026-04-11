@@ -29,7 +29,19 @@ export class ChatRepository {
             where: {
                 id: chatId,
                 users: {
-                    some: {userId: userId},
+                    some: { userId: userId },
+                }
+            }
+        })
+    }
+
+    async findUserChats(userId: string): Promise<Chat[]> {
+        return this.prisma.chat.findMany({
+            where: {
+                users: {
+                    some: {
+                        id: userId
+                    }
                 }
             }
         })

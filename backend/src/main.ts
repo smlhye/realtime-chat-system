@@ -7,14 +7,24 @@ import * as YAML from 'yamljs';
 import { SwaggerModule } from "@nestjs/swagger";
 import { AppConfigService } from "./config/config.service";
 import cookieParser from 'cookie-parser';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
     const logger = app.get(AppLoggerService);
     const conf = app.get(AppConfigService);
 
+    app.useWebSocketAdapter(new IoAdapter(app));
+    
     app.setGlobalPrefix('api/v1');
     app.use(cookieParser());
+
+    app.enableCors({
+        origin: conf.cors.origin,
+        credentials: conf.cors.credentials,
+        methods: conf.cors.methods,
+    })
+
 
     const document = YAML.load('./openapi/openapi.yaml')
     SwaggerModule.setup('api/v1/docs', app, document);

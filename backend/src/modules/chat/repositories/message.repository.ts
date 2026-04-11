@@ -19,6 +19,15 @@ export class MessageRepository {
         })
     }
 
+    // async updateChatAndUserMessages(chatId: string, userId: string, data: Prisma.MessageUpdateInput) {
+    //     return this.prisma.message.updateMany({
+    //         where: {
+    //             chatId,
+    //             userId,
+    //         }, data,
+    //     })
+    // }
+
     async delete(id: string): Promise<void> {
         await this.prisma.message.delete({ where: { id } });
     }
