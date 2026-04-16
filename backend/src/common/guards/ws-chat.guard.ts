@@ -15,6 +15,8 @@ export class WsChatGuard implements CanActivate {
         const user = client.data?.user;
         const chatId = data?.chatId;
 
+        console.log(chatId);
+
         if (!user) {
             throw new WsException('Unauthorized');
         }

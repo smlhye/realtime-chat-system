@@ -31,6 +31,7 @@ export class HealthCheckController {
     @Get('')
     async checkHealth() {
         return {
+            pid: `PID: ${process.pid}`,
             service: 'realtime-chat',
             status: 'ok',
             timestamp: new Date().toISOString(),

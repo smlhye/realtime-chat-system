@@ -5,48 +5,85 @@ import { AppConfigService } from "src/config/config.service";
 
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
-    private client: Redis | null = null;
+    private client: Redis;
+    private publisher: Redis;
+    private subscriber: Redis;
+    private context: string = RedisService.name;
 
     constructor(
         private readonly logger: AppLoggerService,
         private readonly configService: AppConfigService,
-    ) { }
-
-    onModuleInit() {
+    ) {
         const redisConfig = this.configService.redis;
-        this.client = new Redis({
+        const baseConfig = {
             host: redisConfig.host,
             port: redisConfig.port,
             password: redisConfig.password,
-            db: redisConfig.db
+            db: redisConfig.db,
+            maxRetriesPerRequest: null,
+        };
+        this.client = new Redis(baseConfig)
+
+        this.publisher = this.client.duplicate();
+        this.subscriber = new Redis({
+            ...baseConfig,
+            enableReadyCheck: false,
         })
+    }
 
-        this.client.on('connect', () =>
-            this.logger.log('Redis connected', 'RedisService')
-        );
+    onModuleInit() {
+        [
+            this.client,
+            this.publisher,
+            this.subscriber
+        ].forEach((conn, index) => {
+            const name = ['client', 'publisher', 'subscriber'][index];
+            conn?.on('connect', () =>
+                this.logger.log(`Redis ${name} connected`, this.context),
+            );
 
-        this.client.on('error', (err) =>
-            this.logger.error('Redis error', err.stack || String(err), 'RedisService')
-        );
+            conn?.on('ready', () =>
+                this.logger.log(`Redis ${name} ready`, this.context),
+            );
 
-        this.client.on('ready', () =>
-            this.logger.log('Redis is ready to accept commands', 'RedisService')
-        );
+            conn?.on('error', (err) =>
+                this.logger.error(`Redis ${name} error`, err.stack || String(err), this.context)
+            );
+        })
     }
 
     onModuleDestroy() {
-        if (this.client) {
-            this.client.quit();
-            this.logger.log('Redis connection closed', 'RedisService');
-        }
+        this.client.quit();
+        this.publisher.quit();
+        this.subscriber.quit();
+
+        this.logger.log('Redis connections closed', 'RedisService');
     }
 
     getClient(): Redis {
         if (!this.client) {
-            this.logger.error('Redis client not initialized', undefined, 'RedisService');
+            this.logger.error('Redis client not initialized', undefined, this.context);
             throw new Error('Redis not initialized');
         }
-        this.logger.debug('Redis client retrieved', 'RedisService');
+        this.logger.debug('Redis client retrieved', this.context);
         return this.client;
+    }
+
+    getPublisher(): Redis {
+        if (!this.publisher) {
+            this.logger.error('Redis publisher not initialized', undefined, this.context);
+            throw new Error('Redis publisher not initialized');
+        }
+        this.logger.debug('Redis publisher retrieved', this.context);
+        return this.publisher;
+    }
+
+    getSubscriber(): Redis {
+        if (!this.subscriber) {
+            this.logger.error('Redis subcriber not initialized', undefined, this.context);
+            throw new Error('Redis subcriber not initialized');
+        }
+        this.logger.debug('Redis subcriber retrieved', this.context);
+        return this.subscriber;
     }
 }

@@ -8,14 +8,26 @@ import { SwaggerModule } from "@nestjs/swagger";
 import { AppConfigService } from "./config/config.service";
 import cookieParser from 'cookie-parser';
 import { IoAdapter } from '@nestjs/platform-socket.io';
+import { RedisIoAdapter } from "./infrastructure/redis/redis-io.adapter";
+import * as path from 'path';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
+
     const logger = app.get(AppLoggerService);
     const conf = app.get(AppConfigService);
 
     app.useWebSocketAdapter(new IoAdapter(app));
-    
+
+    const redisIoAdapter = new RedisIoAdapter(app);
+    await redisIoAdapter.connectToRedis({
+        host: conf.redis.host,
+        port: conf.redis.port,
+        password: conf.redis.password,
+        db: conf.redis.db,
+    })
+    app.useWebSocketAdapter(redisIoAdapter);
+
     app.setGlobalPrefix('api/v1');
     app.use(cookieParser());
 
@@ -26,7 +38,9 @@ async function bootstrap() {
     })
 
 
-    const document = YAML.load('./openapi/openapi.yaml')
+    const document = YAML.load(
+        path.join(process.cwd(), 'openapi/openapi.yaml')
+    );
     SwaggerModule.setup('api/v1/docs', app, document);
 
     app.useLogger(logger);

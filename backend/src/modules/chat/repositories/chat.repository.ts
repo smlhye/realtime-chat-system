@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { Chat, Prisma } from "@prisma/client";
+import { Chat, Prisma } from "generated/prisma/client";
 import { PrismaService } from "src/infrastructure/database/prisma/prisma.service";
 
 @Injectable()

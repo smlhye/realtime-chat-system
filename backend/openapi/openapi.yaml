@@ -4,7 +4,7 @@ info:
   version: 1.0.0
   description: API for multi-device auth and chat system
 servers:
-  - url: http://localhost:3000/api/v1
+  - url: http://localhost/api/v1
 paths:
   /auth/sign-up:
     post:
@@ -197,6 +197,67 @@ paths:
           description: Forbidden (user is not a member of the chat)
         '404':
           description: Chat not found
+    
+    get:
+      tags:
+        - Chat
+      summary: Get messages of a chat
+      description: Retrieve a paginated list of messages in a specific chat
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: chatId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the chat
+        - name: take
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 20
+          description: Number of messages to retrieve
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            example: "2026-04-14T10:00:00.000Z"
+          description: Cursor for pagination (fetch messages before this timestamp)
+        - name: after
+          in: query
+          required: false
+          schema: 
+            type: string
+            format: date-time
+            example: "2026-04-14T10:00:00.000Z"
+          description: Fetch messages after this timestamp
+        - name: messageId
+          in: query
+          required: false
+          schema: 
+            type: string
+          description: "Unique identifier of the message"
+      responses:
+        '200':
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SendMessageResponse"
+        '400':
+          description: Invalid request payload
+        '401':
+          description: Invalid credentials
+        '403':
+          description: Forbidden (user is not a member of the chat)
+        '404':
+          description: Chat not found
 
 components:
   securitySchemes:
@@ -373,11 +434,15 @@ components:
       type: object
       required:
         - content
+        - tempId
       properties:
         content:
           type: string
           example: Hello World
           description: The textual content of the message to be sent
+        tempId:
+          type: string
+          description: Temporary client-side ID used for message tracking before server persistence
     
     SendMessageResponse:
       type: object

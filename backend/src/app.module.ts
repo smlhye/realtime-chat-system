@@ -8,6 +8,7 @@ import { UserModule } from "./modules/user/user.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { ScheduleModule } from "@nestjs/schedule";
 import { ChatModule } from "./modules/chat/chat.module";
+import { ChatWsModule } from "./modules/chat/ws/chat-gateway.module";
 
 @Module({
     imports: [
@@ -20,6 +21,7 @@ import { ChatModule } from "./modules/chat/chat.module";
         AuthModule,
         ScheduleModule.forRoot(),
         ChatModule,
+        ChatWsModule,
     ],
 })
 export class AppModule { }

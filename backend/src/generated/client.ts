@@ -67,7 +67,9 @@ const AddUsersToChatResponse = z
   })
   .partial()
   .passthrough();
-const SendMessageRequest = z.object({ content: z.string() }).passthrough();
+const SendMessageRequest = z
+  .object({ content: z.string(), tempId: z.string() })
+  .passthrough();
 const SendMessageResponse = z
   .object({
     id: z.string(),
@@ -190,7 +192,7 @@ export const schemas = {
 //       {
 //         name: 'body',
 //         type: 'Body',
-//         schema: z.object({ content: z.string() }).passthrough(),
+//         schema: SendMessageRequest,
 //       },
 //       {
 //         name: 'chatId',
@@ -199,6 +201,53 @@ export const schemas = {
 //       },
 //     ],
 //     response: SendMessageResponse,
+//     errors: [
+//       {
+//         status: 400,
+//         description: `Invalid request payload`,
+//         schema: z.void(),
+//       },
+//       {
+//         status: 401,
+//         description: `Invalid credentials`,
+//         schema: z.void(),
+//       },
+//       {
+//         status: 403,
+//         description: `Forbidden (user is not a member of the chat)`,
+//         schema: z.void(),
+//       },
+//       {
+//         status: 404,
+//         description: `Chat not found`,
+//         schema: z.void(),
+//       },
+//     ],
+//   },
+//   {
+//     method: 'get',
+//     path: '/chats/:chatId/messages',
+//     alias: 'getChatsChatIdmessages',
+//     description: `Retrieve a paginated list of messages in a specific chat`,
+//     requestFormat: 'json',
+//     parameters: [
+//       {
+//         name: 'chatId',
+//         type: 'Path',
+//         schema: z.string(),
+//       },
+//       {
+//         name: 'take',
+//         type: 'Query',
+//         schema: z.number().int().optional(),
+//       },
+//       {
+//         name: 'cursor',
+//         type: 'Query',
+//         schema: z.string().datetime({ offset: true }).optional(),
+//       },
+//     ],
+//     response: z.array(SendMessageResponse),
 //     errors: [
 //       {
 //         status: 400,

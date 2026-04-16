@@ -1,10 +1,15 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
 generator client {
     provider = "prisma-client-js"
+    output   = "../generated/prisma"
 }
 
 datasource db {
     provider = "postgresql"
-    // url      = env("DATABASE_URL")
 }
 
 model User {
@@ -50,6 +55,7 @@ model ChatUser {
 
 model Message {
     id        String   @id @default(cuid())
+    tempId    String?  @unique
     content   String
     sender    User     @relation(fields: [senderId], references: [id])
     senderId  String

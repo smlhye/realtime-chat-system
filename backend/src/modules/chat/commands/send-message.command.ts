@@ -5,5 +5,6 @@ export class SendMessageCommand implements ICommand {
         public senderId: string,
         public chatId: string,
         public content: string,
+        public tempId: string,
     ) { }
 }

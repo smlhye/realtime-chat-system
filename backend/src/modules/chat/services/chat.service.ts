@@ -84,8 +84,20 @@ export class ChatService {
         return this.chatRepo.findUserChats(userId);
     }
 
+    async findMessageByTempId(tempId: string) {
+        return this.messageRepo.findByTempId(tempId);
+    }
+
+    async findMessages(params: { chatId: string, take?: number, cursor?: string, after?: string }) {
+        return this.messageRepo.findMessages(params);
+    }
+
+    async findMessageById(messageId: string) {
+        return this.messageRepo.findById(messageId);
+    }
+
     async sendMessage(data: SendMessageRequest) {
-        const { chatId, senderId, content } = data;
+        const { chatId, senderId, content, tempId } = data;
         return this.messageRepo.create({
             sender: {
                 connect: {
@@ -98,7 +110,8 @@ export class ChatService {
                 }
             },
             content,
-        })
+            tempId,
+        });
     }
 
     async updateLastSeen(chatId: string, userId: string) {

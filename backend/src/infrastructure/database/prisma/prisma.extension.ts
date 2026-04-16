@@ -1,5 +1,5 @@
+import { Prisma } from 'generated/prisma/client';
 import { AppLoggerService } from '../../logger/logger.service';
-import { Prisma } from '@prisma/client';
 
 export const createPrismaExtension = (logger: AppLoggerService) => ({
     name: 'performance-extension',
