@@ -41,8 +41,9 @@ export class GetMessagesHandler implements IQueryHandler<GetMessagesQuery> {
             chatId: message.chatId,
             content: message.content,
             createdAt: message.createdAt.toISOString(),
-            tempId: message.tempId,
+            tempId: message.tempId ?? undefined,
             senderName: message.sender.fullName,
+            isMe: message.senderId === userId,
         }));
     }
 }

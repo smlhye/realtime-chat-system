@@ -8,8 +8,17 @@ export class MessageRepository {
         private readonly prisma: PrismaService,
     ) { }
 
-    async create(data: Prisma.MessageCreateInput): Promise<Message> {
-        return this.prisma.message.create({ data });
+    async create(data: Prisma.MessageCreateInput): Promise<Message & { sender: { fullName: string } }> {
+        return this.prisma.message.create({
+            data,
+            include: {
+                sender: {
+                    select: {
+                        fullName: true,
+                    }
+                }
+            }
+        });
     }
 
     async update(id: string, data: Prisma.MessageUpdateInput): Promise<Message | null> {
@@ -27,10 +36,17 @@ export class MessageRepository {
         })
     }
 
-    async findByTempId(tempId: string): Promise<Message | null> {
+    async findByTempId(tempId: string): Promise<Message & { sender: { fullName: string } } | null> {
         return this.prisma.message.findUnique({
             where: {
                 tempId
+            },
+            include: {
+                sender: {
+                    select: {
+                        fullName: true,
+                    }
+                }
             }
         })
     }
@@ -55,10 +71,10 @@ export class MessageRepository {
         }
         return this.prisma.message.findMany({
             where,
-            orderBy: {
-                createdAt: after ? 'asc' : 'desc',
-                id: 'asc',
-            },
+            orderBy: [
+                { createdAt: after ? 'asc' : 'desc' },
+                { id: 'asc' }
+            ],
             include: {
                 sender: {
                     select: {

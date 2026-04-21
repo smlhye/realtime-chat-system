@@ -15,6 +15,9 @@ import { Queue } from "bullmq";
 import { ChatEventsService } from "../services/chat-events.service";
 import { RedisService } from "src/infrastructure/redis/redis.service";
 import Redis from "ioredis";
+import * as cookie from "cookie";
+
+type TypingKey = string;
 
 @WebSocketGateway({
     namespace: '/socket',
@@ -33,6 +36,12 @@ export class ChatGateway implements OnModuleInit, OnModuleDestroy, OnGatewayInit
 
     private readonly context = ChatGateway.name;
 
+    private typingMap = new Map<TypingKey, NodeJS.Timeout>();
+
+    private getTypingKey({ chatId, userId }: { chatId: string, userId: string }) {
+        return `${chatId}:${userId}`;
+    }
+
     constructor(
         private readonly logger: AppLoggerService,
         private readonly authSecurityService: AuthSecurityService,
@@ -43,7 +52,9 @@ export class ChatGateway implements OnModuleInit, OnModuleDestroy, OnGatewayInit
 
         @Inject(QUEUE_NAMES.MESSAGE)
         private readonly messageQueue: Queue,
-    ) { }
+    ) {
+
+    }
 
     async onModuleInit() {
         this.sub = this.redisService.getSubscriber();
@@ -81,7 +92,7 @@ export class ChatGateway implements OnModuleInit, OnModuleDestroy, OnGatewayInit
     }
 
     async handleConnection(client: Socket, ...args: any[]) {
-        this.logger.log("Client connected " + client.id);
+        this.logger.log("Client connected " + client.id, this.context);
         try {
             const token = this.extractToken(client);
             const payload: JwtPayload = await this.authSecurityService.verifyAccessToken(token);
@@ -156,9 +167,24 @@ export class ChatGateway implements OnModuleInit, OnModuleDestroy, OnGatewayInit
         @MessageBody() data: { chatId: string }
     ) {
         const { chatId } = data;
-        client.to(chatId).emit('user_typing', {
-            userId: user.id,
-        });
+        const key = this.getTypingKey({ chatId, userId: user.id });
+        if (this.typingMap.has(key)) {
+            clearTimeout(this.typingMap.get(key));
+        } else {
+            client.to(chatId).emit('user_typing', {
+                userId: user.id,
+                fullName: user.fullName,
+            });
+        }
+        const timeout = setTimeout(() => {
+            this.typingMap.delete(key);
+            client.to(chatId).emit('user_stop_typing', {
+                userId: user.id,
+                fullName: user.fullName,
+            });
+        }, 3000);
+
+        this.typingMap.set(key, timeout);
     }
 
     @UseGuards(WsChatGuard)
@@ -169,9 +195,16 @@ export class ChatGateway implements OnModuleInit, OnModuleDestroy, OnGatewayInit
         @MessageBody() data: { chatId: string }
     ) {
         const { chatId } = data;
-        client.to(chatId).emit('user_stop_typing', {
-            userId: user.id,
-        });
+        const key = this.getTypingKey({ chatId, userId: user.id });
+        const existing = this.typingMap.get(key);
+        if (existing) {
+            clearTimeout(existing);
+            this.typingMap.delete(key);
+            client.to(chatId).emit('user_stop_typing', {
+                userId: user.id,
+                fullName: user.fullName,
+            });
+        }
     }
 
     @UseGuards(WsChatGuard)
@@ -220,12 +253,23 @@ export class ChatGateway implements OnModuleInit, OnModuleDestroy, OnGatewayInit
     }
 
     private extractToken(client: Socket): string {
-        const token =
-            client.handshake.auth?.token ||
-            client.handshake.headers['authorization']?.split(' ')[1];
-        this.logger.debug(`Token: ${token}`, this.context);
+        const authToken = client.handshake.auth?.token;
+        const bearerToken =
+            client.handshake.headers?.authorization?.split(" ")[1];
+        const cookies = client.handshake.headers?.cookie;
+        let cookieToken: string | undefined;
+
+        if (cookies) {
+            const parsed = cookie.parse(cookies);
+            cookieToken = parsed["access_token"];
+        }
+        const token = authToken || bearerToken || cookieToken;
+        this.logger.debug(
+            `Token resolved: ${token ? "YES" : "NO"}`,
+            this.context,
+        );
         if (!token) {
-            throw new WsException('Unauthorized');
+            throw new WsException("Unauthorized");
         }
         return token;
     }

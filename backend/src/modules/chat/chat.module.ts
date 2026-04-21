@@ -13,11 +13,11 @@ import { WsAuthGuard } from "src/common/guards/ws-auth.guard";
 import { LoggerModule } from "src/infrastructure/logger/logger.module";
 import { AuthModule } from "../auth/auth.module";
 import { UserModule } from "../user/user.module";
-import { ChatEventListener } from "./events/listeners/chat-event.listener";
 import { UpdateLastSeenHandler } from "./commands/handlers/update-last-seen.handler";
 import { GetMessagesHandler } from "./queries/handlers/get-messages.handler";
 import { RedisModule } from "src/infrastructure/redis/redis.module";
 import { ChatEventsService } from "./services/chat-events.service";
+import { GetChatsOfUserHandler } from "./queries/handlers/get-chats-of-user.handler";
 
 @Module({
     imports: [
@@ -28,7 +28,6 @@ import { ChatEventsService } from "./services/chat-events.service";
         RedisModule,
     ],
     providers: [
-        // ChatGateway,
         ChatEventsService,
         
         WsChatGuard,
@@ -43,9 +42,9 @@ import { ChatEventsService } from "./services/chat-events.service";
         CreateChatHandler,
         AddUsersToChatHandler,
         SendMessageHandler,
-        // ChatEventListener,
         UpdateLastSeenHandler,
         GetMessagesHandler,
+        GetChatsOfUserHandler,
     ],
     controllers: [
         ChatController,

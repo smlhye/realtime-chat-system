@@ -4,7 +4,7 @@ info:
   version: 1.0.0
   description: API for multi-device auth and chat system
 servers:
-  - url: http://localhost/api/v1
+  - url: http://localhost:3000/api/v1
 paths:
   /auth/sign-up:
     post:
@@ -125,6 +125,49 @@ paths:
                 $ref: "#/components/schemas/CreateChatResponse"
         '401':
           description: Invalid credentials
+
+    get:
+      tags:
+        - Chat
+      summary: Get chat list
+      description: Retrieve a paginated list of chat messages with optional search and cursor-based pagination.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: name
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter chat by user name or chat name
+        - name: take
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 20
+          description: Number of chats to retrieve
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            example: "2026-04-14T10:00:00.000Z"
+          description: Cursor for pagination (fetch chats before this timestamp)
+      responses:
+          '200':
+            description: Successfully retrieved chat list
+            content: 
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/CreateChatResponse"
+          '401':
+            description: Invalid credentials
+          '404':
+            description: Chat or user not found
 
   /chats/{chatId}/users:
     post:
@@ -456,6 +499,9 @@ components:
         chatId: 
           type: string
           description: Unique identifier of the chat where the message was sent
+        tempId:
+          type: string
+          description: Temporary client-generated identifier used to track and reconcile messages before the server assigns a permanent id
         content: 
           type: string
           description: The textual content of the message
@@ -463,3 +509,6 @@ components:
           type: string
           format: date-time
           description: The date and time when the message was created
+        isMe:
+          type: boolean
+          description:  Indicates whether the message was sent by the current authenticated user

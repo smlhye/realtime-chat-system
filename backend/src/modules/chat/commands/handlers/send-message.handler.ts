@@ -17,6 +17,7 @@ export class SendMessageHandler implements ICommandHandler<SendMessageCommand> {
     ) { }
 
     async execute(command: SendMessageCommand): Promise<SendMessageResponse> {
+        this.logger.log(`SENDERID: ${command}`, this.context);
         const chat = await this.chatService.findChatByIdAndUserId(command.chatId, command.senderId);
         if (!chat) throw new BaseException({
             code: ErrorCode.FORBIDDEN,
@@ -33,6 +34,8 @@ export class SendMessageHandler implements ICommandHandler<SendMessageCommand> {
                 content: existing.content,
                 createdAt: existing.createdAt.toISOString(),
                 tempId: existing.tempId!,
+                senderName: existing.sender.fullName,
+                isMe: existing.senderId === command.senderId
             };
         }
 
@@ -51,6 +54,8 @@ export class SendMessageHandler implements ICommandHandler<SendMessageCommand> {
             content: message.content,
             createdAt: message.createdAt.toISOString(),
             tempId: command.tempId,
+            senderName: message.sender.fullName,
+            isMe: message.senderId === command.senderId
         }
 
         // this.eventBus.publish(new MessageCreatedEvent(messageRes));

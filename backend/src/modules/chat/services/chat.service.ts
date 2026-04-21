@@ -80,8 +80,21 @@ export class ChatService {
         return this.chatRepo.findByChatIdAndUserId(chatId, userId);
     }
 
-    async findUserChats(userId: string) {
-        return this.chatRepo.findUserChats(userId);
+    async findChatsOfUser({ userId, name, take, cursor }: { userId: string, name?: string, take?: number, cursor?: string })
+        : Promise<CreateChatResponse[]> {
+        const chats = await this.chatRepo.findChatsOfUser({ userId, name, take, cursor });
+        return chats.map((chat) => {
+            const otherUser = chat.users?.[0]?.user;
+            return {
+                id: chat.id,
+                name: chat.isGroup
+                    ? chat.name ?? 'Unnamed Group'
+                    : otherUser?.fullName ?? 'Unknown',
+                isGroup: chat.isGroup,
+                createdAt: chat.createdAt.toISOString(),
+                updatedAt: chat.updatedAt.toISOString(),
+            }
+        });
     }
 
     async findMessageByTempId(tempId: string) {

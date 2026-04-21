@@ -75,8 +75,10 @@ const SendMessageResponse = z
     id: z.string(),
     senderId: z.string(),
     chatId: z.string(),
+    tempId: z.string(),
     content: z.string(),
     createdAt: z.string().datetime({ offset: true }),
+    isMe: z.boolean(),
   })
   .partial()
   .passthrough();
@@ -183,6 +185,43 @@ export const schemas = {
 //     ],
 //   },
 //   {
+//     method: 'get',
+//     path: '/chats',
+//     alias: 'getChats',
+//     description: `Retrieve a paginated list of chat messages with optional search and cursor-based pagination.`,
+//     requestFormat: 'json',
+//     parameters: [
+//       {
+//         name: 'name',
+//         type: 'Query',
+//         schema: z.string().optional(),
+//       },
+//       {
+//         name: 'take',
+//         type: 'Query',
+//         schema: z.number().int().optional(),
+//       },
+//       {
+//         name: 'cursor',
+//         type: 'Query',
+//         schema: z.string().datetime({ offset: true }).optional(),
+//       },
+//     ],
+//     response: z.array(CreateChatResponse),
+//     errors: [
+//       {
+//         status: 401,
+//         description: `Invalid credentials`,
+//         schema: z.void(),
+//       },
+//       {
+//         status: 404,
+//         description: `Chat or user not found`,
+//         schema: z.void(),
+//       },
+//     ],
+//   },
+//   {
 //     method: 'post',
 //     path: '/chats/:chatId/messages',
 //     alias: 'postChatsChatIdmessages',
@@ -245,6 +284,16 @@ export const schemas = {
 //         name: 'cursor',
 //         type: 'Query',
 //         schema: z.string().datetime({ offset: true }).optional(),
+//       },
+//       {
+//         name: 'after',
+//         type: 'Query',
+//         schema: z.string().datetime({ offset: true }).optional(),
+//       },
+//       {
+//         name: 'messageId',
+//         type: 'Query',
+//         schema: z.string().optional(),
 //       },
 //     ],
 //     response: z.array(SendMessageResponse),

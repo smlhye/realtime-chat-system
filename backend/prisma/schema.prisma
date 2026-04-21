@@ -4,8 +4,9 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-    provider = "prisma-client-js"
+    provider = "prisma-client"
     output   = "../generated/prisma"
+    moduleFormat = "cjs"
 }
 
 datasource db {
@@ -13,7 +14,7 @@ datasource db {
 }
 
 model User {
-    id        String   @id @default(cuid())
+    id        String   @id @default(uuid())
     fullName  String
     username  String   @unique
     email     String   @unique
@@ -29,7 +30,7 @@ model User {
 }
 
 model Chat {
-    id        String     @id @default(cuid())
+    id        String     @id @default(uuid())
     name      String?
     isGroup   Boolean    @default(false)
     createdAt DateTime   @default(now())
@@ -39,7 +40,7 @@ model Chat {
 }
 
 model ChatUser {
-    id     String @id @default(cuid())
+    id     String @id @default(uuid())
     chat   Chat   @relation(fields: [chatId], references: [id])
     chatId String
     user   User   @relation(fields: [userId], references: [id])
@@ -54,7 +55,7 @@ model ChatUser {
 }
 
 model Message {
-    id        String   @id @default(cuid())
+    id        String   @id @default(uuid())
     tempId    String?  @unique
     content   String
     sender    User     @relation(fields: [senderId], references: [id])
@@ -68,7 +69,7 @@ model Message {
 }
 
 model Session {
-    id        String    @id @default(cuid())
+    id        String    @id @default(uuid())
     user      User      @relation(fields: [userId], references: [id])
     userId    String
     ip        String

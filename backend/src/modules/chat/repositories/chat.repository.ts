@@ -35,15 +35,81 @@ export class ChatRepository {
         })
     }
 
-    async findUserChats(userId: string): Promise<Chat[]> {
+    async findChatsOfUser({ userId, name, take = 20, cursor }: { userId: string, name?: string, take?: number, cursor?: string }): Promise<
+        (Chat & {
+            users: {
+                user: {
+                    fullName: string
+                }
+            }[]
+        })[]> {
+        const cursorDate = cursor ? new Date(cursor) : undefined;
         return this.prisma.chat.findMany({
             where: {
                 users: {
                     some: {
-                        id: userId
+                        userId
                     }
-                }
-            }
-        })
+                },
+                // messages: {
+                //     some: {}
+                // },
+                ...(name && {
+                    OR: [
+                        {
+                            isGroup: true,
+                            name: {
+                                contains: name,
+                                mode: 'insensitive',
+                            },
+                        },
+                        {
+                            isGroup: false,
+                            users: {
+                                some: {
+                                    NOT: { userId },
+                                    user: {
+                                        fullName: {
+                                            contains: name,
+                                            mode: 'insensitive',
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    ]
+                }),
+                ...(cursorDate && {
+                    updatedAt: {
+                        lt: cursorDate,
+                    },
+                }),
+            },
+            orderBy: [
+                { updatedAt: 'desc' },
+                { id: 'asc' },
+            ],
+            take,
+            select: {
+                id: true,
+                name: true,
+                isGroup: true,
+                createdAt: true,
+                updatedAt: true,
+                users: {
+                    where: {
+                        NOT: { userId },
+                    },
+                    take: 1,
+                    select: {
+                        user: {
+                            select: {
+                                fullName: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
     }
 }

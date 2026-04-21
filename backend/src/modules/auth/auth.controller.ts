@@ -63,9 +63,17 @@ export class AuthController {
         res.cookie('refresh_token', signInData.refreshToken, {
             httpOnly: true,
             secure: this.appConfigService.app.isProd,
-            sameSite: 'strict',
+            sameSite: 'lax',
             expires: new Date(signInData.refreshExpiresAt as string)
         });
+
+        res.cookie('access_token', signInData.accessToken, {
+            httpOnly: true,
+            secure: this.appConfigService.app.isProd,
+            sameSite: 'lax',
+            expires: new Date(signInData.expiresAt as string)
+        })
+
         return {
             accessToken: signInData.accessToken,
             tokenType: signInData.tokenType,
@@ -78,6 +86,7 @@ export class AuthController {
     async signOut(
         @CurrentUser() payload: JwtPayload,
         @Req() req: Request,
+        @Res({ passthrough: true }) res: Response,
     ) {
         const refreshToken = req?.cookies?.refresh_token;
         if (!refreshToken) {
@@ -86,6 +95,20 @@ export class AuthController {
                 message: 'Refresh token not found',
             })
         }
+
+        res.clearCookie('refresh_token', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/',
+        });
+        res.clearCookie('access_token', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/',
+        });
+
         const device = req.headers['user-agent'] || 'unknown';
         const ip = req.ip || '0.0.0.0';
 
@@ -100,9 +123,24 @@ export class AuthController {
     @Post('refresh')
     @UseGuards(RefreshTokenGuard)
     async refresh(
-        @RefreshToken() refreshTokenPayload: RefreshTokenPayload
+        @RefreshToken() refreshTokenPayload: RefreshTokenPayload,
+        @Res({ passthrough: true }) res: Response,
     ) {
-        return this.commandBus.execute(new RefreshCommand(refreshTokenPayload));
+        const refeshData = await this.commandBus.execute(new RefreshCommand(refreshTokenPayload));
+
+        res.cookie('access_token', refeshData.accessToken, {
+            httpOnly: true,
+            secure: this.appConfigService.app.isProd,
+            sameSite: 'lax',
+            expires: new Date(refeshData.expiresAt as string),
+            path: '/'
+        });
+
+        return {
+            accessToken: refeshData.accessToken,
+            tokenType: refeshData.tokenType,
+            expiresAt: refeshData.expiresAt,
+        };
     }
 
     @Post('sign-out-all')

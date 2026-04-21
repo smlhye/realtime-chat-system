@@ -23,18 +23,18 @@ export class RefreshHandler implements ICommandHandler<RefreshCommand> {
     ) { }
 
     async execute(command: RefreshCommand): Promise<SignInResponse> {
-        const user = await this.userService.findById(command.refreshTokenPayload.sub);
-        if(!user) {
-            throw new BaseException({
-                code: ErrorCode.UNAUTHORIZED,
-                message: 'User is not found',
-            })
-        }
-        const jti = command.refreshTokenPayload.jti;
+        const {jti, sub} = command.refreshTokenPayload;
         if (!jti) {
             throw new BaseException({
                 code: ErrorCode.UNAUTHORIZED,
                 message: 'Refresh token invalid',
+            })
+        }
+        const user = await this.userService.findById(sub);
+        if (!user) {
+            throw new BaseException({
+                code: ErrorCode.UNAUTHORIZED,
+                message: 'User is not found',
             })
         }
         const session = await this.sessionService.findById(jti);
@@ -50,19 +50,19 @@ export class RefreshHandler implements ICommandHandler<RefreshCommand> {
                 message: 'Session is invalid or expired',
             })
         }
-        const now = Date.now();
-
+        const now = Math.floor(Date.now() / 1000);
+        
         const accessTokenId = uuidv4();
         const accessPayload: JwtPayload = {
-            sub: command.refreshTokenPayload.sub,
+            sub,
             tokenVersion: user.tokenVersion,
             aud: this.appConfigService.jwt.audience,
             iss: this.appConfigService.jwt.issuer,
             iat: now,
-            exp: now + await this.authSecurityService.getAccessTokenExpiresIn(),
+            exp: now + (await this.authSecurityService.getAccessTokenExpiresIn()),
             jti: accessTokenId,
         };
-
+        
         const accessToken = await this.authSecurityService.generateAccessToken(accessPayload);
         const accessExpiresAt = new Date(accessPayload.exp! * 1000).toISOString();
         return {
